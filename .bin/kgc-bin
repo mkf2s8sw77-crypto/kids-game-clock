@@ -1,0 +1,3 @@
+#!/bin/bash
+# 用 exec -a 改变 argv[0] 名字
+exec -a "kgc-server" node /Users/zc-MAC/Downloads/游戏计时/kids-game-clock/node_modules/next/dist/bin/next "$@"
