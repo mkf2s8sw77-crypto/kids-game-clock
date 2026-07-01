@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, ListChecks, Users, Gift, LogOut, Gamepad2 } from "lucide-react";
+import { LayoutDashboard, ListChecks, Gift, LogOut, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { apiPost } from "@/lib/client";
 import { BASE_PATH } from "@/lib/config";
@@ -9,7 +9,6 @@ import { BASE_PATH } from "@/lib/config";
 const NAV = [
   { href: "/admin", label: "概览", icon: LayoutDashboard, exact: true },
   { href: "/admin/records", label: "记录", icon: ListChecks },
-  { href: "/admin/children", label: "孩子", icon: Users },
   { href: "/admin/bonus", label: "奖励", icon: Gift },
 ];
 

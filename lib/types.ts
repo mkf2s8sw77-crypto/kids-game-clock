@@ -1,15 +1,5 @@
-export interface Child {
-  id: number;
-  name: string;
-  color: string;
-  icon: string;
-  sortOrder: number;
-  createdAt: string;
-}
-
 export interface GameSession {
   id: number;
-  childId: number;
   startedAt: string;
   endedAt: string | null;
   durationSeconds: number;
@@ -36,6 +26,5 @@ export interface WeekStats {
   usedMinutes: number;
   remainingMinutes: number;
   activeSession: GameSession | null;
-  perChild: { childId: number; childName: string; color: string; minutes: number }[];
   perDay: { date: string; minutes: number }[];
 }

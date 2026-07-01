@@ -3,36 +3,27 @@ import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Select, Textarea } from "@/components/ui/Input";
-import { Child, GameSession, WeekStats } from "@/lib/types";
+import { GameSession, WeekStats } from "@/lib/types";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/client";
 import { formatDateTimeCN, formatDateCN, formatDurationSec, formatMinutes, getWeekStartDate } from "@/lib/time";
-import { getIcon } from "@/lib/icons";
 import { Plus, Pencil, Trash2, X, Check, Filter } from "lucide-react";
 
 export function RecordsPage({
   initialSessions,
-  children: initialChildren,
   weekStart,
 }: {
   initialSessions: GameSession[];
-  children: Child[];
   weekStart: string;
 }) {
   const [sessions, setSessions] = useState(initialSessions);
-  const [children, setChildren] = useState(initialChildren);
-  const [filterChild, setFilterChild] = useState<string>("");
   const [filterSource, setFilterSource] = useState<string>("");
   const [filterWeek, setFilterWeek] = useState<string>("current");
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<GameSession | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const childMap: Record<number, Child> = {};
-  for (const c of children) childMap[c.id] = c;
-
   const filtered = useMemo(() => {
     return sessions.filter((s) => {
-      if (filterChild && s.childId !== Number(filterChild)) return false;
       if (filterSource && s.source !== filterSource) return false;
       if (filterWeek === "current") {
         return getWeekStartDate(s.startedAt) === weekStart;
@@ -42,15 +33,11 @@ export function RecordsPage({
       }
       return true;
     });
-  }, [sessions, filterChild, filterSource, filterWeek, weekStart]);
+  }, [sessions, filterSource, filterWeek, weekStart]);
 
   async function refresh() {
-    const [list, ch] = await Promise.all([
-      apiGet<GameSession[]>("/api/sessions?limit=500"),
-      apiGet<Child[]>("/api/children"),
-    ]);
+    const list = await apiGet<GameSession[]>("/api/sessions?limit=500");
     setSessions(list);
-    setChildren(ch);
   }
 
   async function handleDelete(id: number) {
@@ -76,20 +63,10 @@ export function RecordsPage({
         </Button>
       </div>
 
-      {/* 筛选 */}
       <Card className="flex items-end gap-4">
         <div className="flex items-center gap-2 text-slate-500 pb-2">
           <Filter className="w-4 h-4" />
           <span className="text-sm">筛选</span>
-        </div>
-        <div className="w-40">
-          <Label>孩子</Label>
-          <Select value={filterChild} onChange={(e) => setFilterChild(e.target.value)}>
-            <option value="">全部</option>
-            {children.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </Select>
         </div>
         <div className="w-40">
           <Label>来源</Label>
@@ -116,7 +93,6 @@ export function RecordsPage({
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase">
             <tr>
-              <th className="text-left px-4 py-3">孩子</th>
               <th className="text-left px-4 py-3">开始</th>
               <th className="text-left px-4 py-3">结束</th>
               <th className="text-right px-4 py-3">时长</th>
@@ -128,69 +104,51 @@ export function RecordsPage({
           <tbody className="divide-y divide-slate-100">
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-12 text-slate-500">无记录</td>
+                <td colSpan={6} className="text-center py-12 text-slate-500">无记录</td>
               </tr>
             )}
-            {filtered.map((s) => {
-              const c = childMap[s.childId];
-              const Icon = c ? getIcon(c.icon) : null;
-              return (
-                <tr key={s.id} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      {c && (
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white"
-                          style={{ backgroundColor: c.color }}
-                        >
-                          {Icon && <Icon className="w-3.5 h-3.5" />}
-                        </div>
-                      )}
-                      <span className="font-medium text-slate-800">{c?.name ?? "未知"}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-slate-700 tabular-nums">{formatDateTimeCN(s.startedAt)}</td>
-                  <td className="px-4 py-3 text-slate-700 tabular-nums">{s.endedAt ? formatDateTimeCN(s.endedAt) : "进行中"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums text-slate-700">
-                    {s.endedAt ? formatDurationSec(s.durationSeconds) : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${s.source === "manual" ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>
-                      {s.source === "manual" ? "手动" : "设备"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-500 max-w-[200px] truncate" title={s.note ?? ""}>
-                    {s.note ?? ""}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      <button
-                        onClick={() => setEditing(s)}
-                        className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-brand-600"
-                        aria-label="编辑"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s.id)}
-                        disabled={busy}
-                        className="p-1.5 rounded hover:bg-rose-50 text-slate-500 hover:text-rose-600"
-                        aria-label="删除"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+            {filtered.map((s) => (
+              <tr key={s.id} className="hover:bg-slate-50/50">
+                <td className="px-4 py-3 text-slate-700 tabular-nums">{formatDateTimeCN(s.startedAt)}</td>
+                <td className="px-4 py-3 text-slate-700 tabular-nums">{s.endedAt ? formatDateTimeCN(s.endedAt) : "进行中"}</td>
+                <td className="px-4 py-3 text-right tabular-nums text-slate-700">
+                  {s.endedAt ? formatDurationSec(s.durationSeconds) : "—"}
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${s.source === "manual" ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>
+                    {s.source === "manual" ? "手动" : "设备"}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-slate-500 max-w-[200px] truncate" title={s.note ?? ""}>
+                  {s.note ?? ""}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex justify-end gap-1">
+                    <button
+                      onClick={() => setEditing(s)}
+                      className="p-1.5 rounded hover:bg-slate-100 text-slate-500 hover:text-brand-600"
+                      aria-label="编辑"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(s.id)}
+                      disabled={busy}
+                      className="p-1.5 rounded hover:bg-rose-50 text-slate-500 hover:text-rose-600"
+                      aria-label="删除"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </Card>
 
       {showAdd && (
         <AddSessionDialog
-          children={children}
           onClose={() => setShowAdd(false)}
           onSaved={async () => {
             setShowAdd(false);
@@ -201,7 +159,6 @@ export function RecordsPage({
       {editing && (
         <EditSessionDialog
           session={editing}
-          children={children}
           onClose={() => setEditing(null)}
           onSaved={async () => {
             setEditing(null);
@@ -213,8 +170,7 @@ export function RecordsPage({
   );
 }
 
-function AddSessionDialog({ children, onClose, onSaved }: { children: Child[]; onClose: () => void; onSaved: () => void }) {
-  const [childId, setChildId] = useState<number | "">("");
+function AddSessionDialog({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [start, setStart] = useState("10:00");
   const [end, setEnd] = useState("10:30");
@@ -223,13 +179,12 @@ function AddSessionDialog({ children, onClose, onSaved }: { children: Child[]; o
   const [err, setErr] = useState<string | null>(null);
 
   async function submit() {
-    if (!childId) return setErr("请选择孩子");
     setBusy(true);
     setErr(null);
     try {
       const startedAt = new Date(`${date}T${start}:00+08:00`).toISOString();
       const endedAt = new Date(`${date}T${end}:00+08:00`).toISOString();
-      await apiPost("/api/sessions", { childId, startedAt, endedAt, note });
+      await apiPost("/api/sessions", { startedAt, endedAt, note });
       onSaved();
     } catch (e: any) {
       setErr(String(e?.message ?? e));
@@ -241,13 +196,6 @@ function AddSessionDialog({ children, onClose, onSaved }: { children: Child[]; o
   return (
     <Modal title="手动补录" onClose={onClose}>
       <div className="space-y-3">
-        <div>
-          <Label>孩子</Label>
-          <Select value={childId} onChange={(e) => setChildId(Number(e.target.value))}>
-            <option value="">请选择</option>
-            {children.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </Select>
-        </div>
         <div className="grid grid-cols-3 gap-2">
           <div>
             <Label>日期</Label>
@@ -276,8 +224,7 @@ function AddSessionDialog({ children, onClose, onSaved }: { children: Child[]; o
   );
 }
 
-function EditSessionDialog({ session, children, onClose, onSaved }: { session: GameSession; children: Child[]; onClose: () => void; onSaved: () => void }) {
-  const [childId, setChildId] = useState(session.childId);
+function EditSessionDialog({ session, onClose, onSaved }: { session: GameSession; onClose: () => void; onSaved: () => void }) {
   const initStart = new Date(session.startedAt);
   const initEnd = session.endedAt ? new Date(session.endedAt) : null;
   const toLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -295,7 +242,7 @@ function EditSessionDialog({ session, children, onClose, onSaved }: { session: G
     try {
       const startedAt = new Date(`${date}T${start}:00+08:00`).toISOString();
       const endedAt = new Date(`${date}T${end}:00+08:00`).toISOString();
-      await apiPatch(`/api/sessions/${session.id}`, { childId, startedAt, endedAt, note });
+      await apiPatch(`/api/sessions/${session.id}`, { startedAt, endedAt, note });
       onSaved();
     } catch (e: any) {
       setErr(String(e?.message ?? e));
@@ -309,7 +256,7 @@ function EditSessionDialog({ session, children, onClose, onSaved }: { session: G
     setErr(null);
     try {
       const now = new Date().toISOString();
-      await apiPatch(`/api/sessions/${session.id}`, { childId, endedAt: now });
+      await apiPatch(`/api/sessions/${session.id}`, { endedAt: now });
       onSaved();
     } catch (e: any) {
       setErr(String(e?.message ?? e));
@@ -321,12 +268,6 @@ function EditSessionDialog({ session, children, onClose, onSaved }: { session: G
   return (
     <Modal title={`编辑记录 #${session.id}`} onClose={onClose}>
       <div className="space-y-3">
-        <div>
-          <Label>孩子</Label>
-          <Select value={childId} onChange={(e) => setChildId(Number(e.target.value))}>
-            {children.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </Select>
-        </div>
         <div className="grid grid-cols-3 gap-2">
           <div>
             <Label>日期</Label>

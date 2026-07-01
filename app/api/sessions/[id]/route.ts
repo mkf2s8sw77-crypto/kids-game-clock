@@ -10,7 +10,6 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   const body = (await req.json().catch(() => ({}))) as any;
   try {
     const r = updateSession(sid, {
-      childId: body.childId,
       startedAt: body.startedAt,
       endedAt: body.endedAt,
       note: body.note,

@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { apiPost } from "@/lib/client";
-import { BASE_PATH } from "@/lib/config";
 import { Lock } from "lucide-react";
 
 export function LoginForm() {

@@ -1,23 +1,20 @@
-"use client";
 import { Button } from "@/components/ui/Button";
 import { Play, Square, Loader2 } from "lucide-react";
 
 export function TimerButton({
   active,
   loading,
-  disabled,
   onClick,
 }: {
   active: boolean;
   loading: boolean;
-  disabled: boolean;
   onClick: () => void;
 }) {
   return (
     <Button
       size="xl"
       onClick={onClick}
-      disabled={disabled || loading}
+      disabled={loading}
       variant={active ? "danger" : "primary"}
       className={`w-full h-28 text-2xl font-bold rounded-3xl ${active ? "animate-pulseRing" : ""}`}
     >

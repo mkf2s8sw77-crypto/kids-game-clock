@@ -3,13 +3,9 @@ import { startSession } from "@/lib/db/queries";
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
-  const body = (await req.json().catch(() => ({}))) as { childId: number };
-  if (!body.childId) {
-    return NextResponse.json({ error: "MISSING_CHILD" }, { status: 400 });
-  }
+export async function POST(_req: NextRequest) {
   try {
-    const row = startSession(body.childId);
+    const row = startSession();
     return NextResponse.json(row);
   } catch (e: any) {
     if (e?.message === "ALREADY_ACTIVE") {
