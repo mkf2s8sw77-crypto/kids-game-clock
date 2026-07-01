@@ -35,10 +35,11 @@ export function UserHome({ initialStats, initialRecent }: {
     try {
       const [s, rec] = await Promise.all([
         apiGet<WeekStats>("/api/stats?week=current"),
-        apiGet<GameSession[]>("/api/sessions?week=current&source=device"),
+        apiGet<GameSession[]>("/api/sessions?limit=20"),
       ]);
       setStats(s);
-      setRecent(rec.slice(0, 5));
+      // 最近记录：取已结束的最近 5 条，不限制周/来源
+      setRecent(rec.filter((x) => x.endedAt).slice(0, 5));
       setError(null);
     } catch (e: any) {
       setError(String(e?.message ?? e));

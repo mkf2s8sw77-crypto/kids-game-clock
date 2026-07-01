@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   const stats = getWeekStats();
-  const recent = listSessions({ weekStartDate: stats.weekStartDate, limit: 5, source: "device" });
+  // 最近记录：取已结束的最近 5 条，不限制周/来源
+  const recent = listSessions({ limit: 20 }).filter((s) => s.endedAt).slice(0, 5);
   return <UserHome initialStats={stats} initialRecent={recent} />;
 }
