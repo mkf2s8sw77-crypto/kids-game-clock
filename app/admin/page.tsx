@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   await requireAdmin();
-  const stats = getWeekStats();
+  const stats = getWeekStats(undefined, 84);  // admin 用 12 周 (84 天)
   const recent = listSessions({ limit: 8 });
   const bonuses = listBonuses(stats.weekStartDate);
   return (

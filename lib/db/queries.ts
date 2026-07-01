@@ -219,7 +219,7 @@ export interface WeekStats {
   perDay: { date: string; minutes: number }[];
 }
 
-export function getWeekStats(weekStartDate?: string): WeekStats {
+export function getWeekStats(weekStartDate?: string, days: number = 84): WeekStats {
   const date = weekStartDate ?? getWeekStartDate();
   const start = getWeekStartUTC(date);
   const end = getWeekEndDate(date);
@@ -251,6 +251,35 @@ export function getWeekStats(weekStartDate?: string): WeekStats {
     perDay.push({ date: ymd, minutes: Math.floor((row?.s ?? 0) / 60) });
   }
 
+  // 活动热力图数据：过去 N 天每天的累计时长（按 Asia/Shanghai 聚合）
+  // 从今天往前推 N-1 天，再补到最早一天所在周的周一（保证 7×N 完整网格）
+  const daily: { date: string; minutes: number }[] = [];
+  const todayMs = Date.now();
+  // 收集原始数据：先按 session 全量聚合到 date
+  const allRows = db
+    .select({
+      startedAt: gameSessions.startedAt,
+      duration: gameSessions.durationSeconds,
+    })
+    .from(gameSessions)
+    .where(isNotNull(gameSessions.endedAt))
+    .all();
+  const byDate = new Map<string, number>();
+  for (const r of allRows) {
+    const ymd = (() => {
+      const dtf = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" });
+      return dtf.format(new Date(r.startedAt));
+    })();
+    byDate.set(ymd, (byDate.get(ymd) ?? 0) + r.duration);
+  }
+  // 从 N-1 天前到今天，逐日填入
+  for (let i = days - 1; i >= 0; i--) {
+    const dayMs = todayMs - i * 86400_000;
+    const dtf = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" });
+    const ymd = dtf.format(new Date(dayMs));
+    daily.push({ date: ymd, minutes: Math.floor((byDate.get(ymd) ?? 0) / 60) });
+  }
+
   return {
     weekStartDate: date,
     weekEndDate: getWeekStartDate(new Date(new Date(end).getTime() + 86400_000).toISOString()),
@@ -262,6 +291,7 @@ export function getWeekStats(weekStartDate?: string): WeekStats {
     remainingMinutes: remainingMin,
     activeSession: getActiveSession(),
     perDay,
+    daily,
   };
 }
 

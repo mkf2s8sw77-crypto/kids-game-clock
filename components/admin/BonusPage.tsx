@@ -61,23 +61,22 @@ export function BonusPage({ bonuses: initial, currentWeek }: { bonuses: WeeklyBo
         <div className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
           <Gift className="w-4 h-4 text-amber-500" /> 新增奖惩
         </div>
-        <div className="grid grid-cols-12 gap-3 items-end">
-          <div className="col-span-3">
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="flex-1 min-w-[180px]">
             <Label>周开始日期</Label>
             <Input type="date" value={weekStart} onChange={(e) => setWeekStart(e.target.value)} />
-            <div className="text-xs text-slate-500 mt-1">本周 {formatDateCN(weekStart + "T00:00:00+08:00")}</div>
           </div>
-          <div className="col-span-2">
-            <Label>分钟数（正奖负惩）</Label>
+          <div className="w-40">
+            <Label>分钟数（正负均可）</Label>
             <Input type="number" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))} step={5} />
           </div>
-          <div className="col-span-5">
+          <div className="flex-1 min-w-[200px]">
             <Label>原因</Label>
             <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="例如：考试进步 / 因违规扣 30 分钟" />
           </div>
-          <div className="col-span-2">
+          <div>
             <Label className="invisible">.</Label>
-            <Button onClick={submit} loading={busy} className="w-full h-10">
+            <Button onClick={submit} loading={busy} className="h-10">
               <Plus className="w-4 h-4" /> 添加
             </Button>
           </div>

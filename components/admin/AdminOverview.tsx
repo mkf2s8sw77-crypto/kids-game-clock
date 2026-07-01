@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { GameSession, WeekStats, WeeklyBonus } from "@/lib/types";
+import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { apiGet } from "@/lib/client";
 import { formatDateTimeCN, formatMinutes, formatDateCN } from "@/lib/time";
 import { Clock, Activity, TrendingUp, Gift, CirclePlay, RefreshCw } from "lucide-react";
@@ -94,8 +95,8 @@ export function AdminOverview({
 
       <div className="grid grid-cols-2 gap-4">
         <Card className="col-span-2">
-          <div className="text-sm font-medium text-slate-700 mb-3">本周每日（分钟）</div>
-          <DayBarChart perDay={stats.perDay} />
+          <div className="text-sm font-medium text-slate-700 mb-3">活动热力图</div>
+          <ActivityHeatmap daily={stats.daily} weeks={12} />
         </Card>
       </div>
 
@@ -164,26 +165,3 @@ function StatCard({ label, value, sub, color, icon: Icon }: {
   );
 }
 
-function DayBarChart({ perDay }: { perDay: { date: string; minutes: number }[] }) {
-  const max = Math.max(...perDay.map((d) => d.minutes), 30);
-  const labels = ["一", "二", "三", "四", "五", "六", "日"];
-  return (
-    <div className="flex items-end gap-2 h-40">
-      {perDay.map((d, i) => {
-        const h = max > 0 ? (d.minutes / max) * 100 : 0;
-        return (
-          <div key={d.date} className="flex-1 flex flex-col items-center gap-1.5">
-            <div className="text-xs text-slate-500 tabular-nums">{d.minutes}</div>
-            <div className="w-full flex-1 flex items-end">
-              <div
-                className="w-full bg-gradient-to-t from-brand-500 to-brand-400 rounded-t transition-all"
-                style={{ height: `${Math.max(2, h)}%` }}
-              />
-            </div>
-            <div className="text-xs text-slate-600">周{labels[i]}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}

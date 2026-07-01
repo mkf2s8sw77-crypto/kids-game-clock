@@ -27,4 +27,5 @@ export interface WeekStats {
   remainingMinutes: number;
   activeSession: GameSession | null;
   perDay: { date: string; minutes: number }[];
+  daily: { date: string; minutes: number }[];
 }

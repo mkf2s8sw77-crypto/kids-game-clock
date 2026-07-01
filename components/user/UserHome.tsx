@@ -8,6 +8,7 @@ import { TimerButton } from "./TimerButton";
 import { RecentSessions } from "./RecentSessions";
 import { RemainingRing } from "./RemainingRing";
 import { RefreshCw, Settings } from "lucide-react";
+import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { LOGO_URL } from "@/lib/config";
 import Link from "next/link";
 import { formatDateCN } from "@/lib/time";
@@ -112,6 +113,11 @@ export function UserHome({ initialStats, initialRecent }: {
             </button>
           </div>
           <RecentSessions sessions={recent} />
+        </Card>
+
+        <Card>
+          <div className="text-sm font-medium text-slate-700 mb-3">活动热力图</div>
+          <ActivityHeatmap daily={stats.daily} weeks={8} />
         </Card>
 
         <div className="text-center text-xs text-slate-400 pt-4">
