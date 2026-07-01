@@ -9,7 +9,7 @@ import { BASE_PATH } from "@/lib/config";
 const NAV = [
   { href: "/admin", label: "概览", icon: LayoutDashboard, exact: true },
   { href: "/admin/records", label: "记录", icon: ListChecks },
-  { href: "/admin/bonus", label: "奖励", icon: Gift },
+  { href: "/admin/bonus", label: "奖惩", icon: Gift },
 ];
 
 export function AdminShell({ children, logoUrl }: { children: React.ReactNode; logoUrl: string }) {

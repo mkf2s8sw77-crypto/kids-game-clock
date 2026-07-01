@@ -7,6 +7,7 @@ import { GameSession, WeekStats } from "@/lib/types";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/client";
 import { formatDateTimeCN, formatDateCN, formatDurationSec, formatMinutes, getWeekStartDate } from "@/lib/time";
 import { Plus, Pencil, Trash2, X, Check, Filter } from "lucide-react";
+import { cn } from "@/lib/cn";
 
 export function RecordsPage({
   initialSessions,
@@ -171,7 +172,10 @@ export function RecordsPage({
 }
 
 function AddSessionDialog({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  // 两种模式："duration"（默认，只填时长）/"exact"（精确开始/结束时间）
+  const [mode, setMode] = useState<"duration" | "exact">("duration");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [duration, setDuration] = useState(30); // 时长模式：分钟数
   const [start, setStart] = useState("10:00");
   const [end, setEnd] = useState("10:30");
   const [note, setNote] = useState("");
@@ -182,8 +186,37 @@ function AddSessionDialog({ onClose, onSaved }: { onClose: () => void; onSaved: 
     setBusy(true);
     setErr(null);
     try {
-      const startedAt = new Date(`${date}T${start}:00+08:00`).toISOString();
-      const endedAt = new Date(`${date}T${end}:00+08:00`).toISOString();
+      let startedAt: string;
+      let endedAt: string;
+      if (mode === "duration") {
+        // 时长模式：end = 现在，start = now - duration 分钟
+        const now = new Date();
+        endedAt = now.toISOString();
+        const startMs = now.getTime() - duration * 60_000;
+        // 不能跨周：start 必须在当前周
+        const startDate = new Date(startMs).toISOString().slice(0, 10);
+        const weekStart = (() => {
+          const d = new Date();
+          const tz = "Asia/Shanghai";
+          const ymd = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+          return ymd;
+        })();
+        // 用简单的"周一为周开始"判断：找这周一
+        const dayOfWeek = new Date(d).getDay(); // 0=Sun, 1=Mon
+        const thisMonday = new Date(d);
+        const shift = (dayOfWeek + 6) % 7;
+        thisMonday.setDate(thisMonday.getDate() - shift);
+        thisMonday.setHours(0, 0, 0, 0);
+        if (startMs < thisMonday.getTime()) {
+          setErr(`时长过长会跨周（本周从 ${thisMonday.toISOString().slice(0, 10)} 开始）。请缩短时长或切到精确时间模式`);
+          setBusy(false);
+          return;
+        }
+        startedAt = new Date(startMs).toISOString();
+      } else {
+        startedAt = new Date(`${date}T${start}:00+08:00`).toISOString();
+        endedAt = new Date(`${date}T${end}:00+08:00`).toISOString();
+      }
       await apiPost("/api/sessions", { startedAt, endedAt, note });
       onSaved();
     } catch (e: any) {
@@ -196,23 +229,68 @@ function AddSessionDialog({ onClose, onSaved }: { onClose: () => void; onSaved: 
   return (
     <Modal title="手动补录" onClose={onClose}>
       <div className="space-y-3">
-        <div className="grid grid-cols-3 gap-2">
-          <div>
-            <Label>日期</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </div>
-          <div>
-            <Label>开始</Label>
-            <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} />
-          </div>
-          <div>
-            <Label>结束</Label>
-            <Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
-          </div>
+        {/* 模式切换 */}
+        <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg w-fit">
+          <button
+            type="button"
+            onClick={() => setMode("duration")}
+            className={cn(
+              "px-3 py-1.5 text-sm rounded-md transition",
+              mode === "duration" ? "bg-white shadow-sm text-brand-700 font-medium" : "text-slate-600 hover:text-slate-800"
+            )}
+          >
+            只填时长
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("exact")}
+            className={cn(
+              "px-3 py-1.5 text-sm rounded-md transition",
+              mode === "exact" ? "bg-white shadow-sm text-brand-700 font-medium" : "text-slate-600 hover:text-slate-800"
+            )}
+          >
+            精确时间
+          </button>
         </div>
+
+        {mode === "duration" ? (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>时长（分钟）</Label>
+                <Input
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                  min={1}
+                  step={5}
+                  placeholder="30"
+                />
+                <div className="text-xs text-slate-500 mt-1">
+                  默认：现在往前推 {duration} 分钟到当前
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <Label>日期</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
+            <div>
+              <Label>开始</Label>
+              <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} />
+            </div>
+            <div>
+              <Label>结束</Label>
+              <Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
+            </div>
+          </div>
+        )}
         <div>
           <Label>备注</Label>
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="例如：忘了点结束" />
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="例如：忘了点结束 / 大约玩了半小时" />
         </div>
         {err && <div className="text-sm text-rose-600">{err}</div>}
         <div className="flex justify-end gap-2 pt-2">

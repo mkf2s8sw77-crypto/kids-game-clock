@@ -53,30 +53,31 @@ export function BonusPage({ bonuses: initial, currentWeek }: { bonuses: WeeklyBo
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">奖励 / 惩罚</h1>
-        <p className="text-sm text-slate-500 mt-0.5">为特定周手动增加时长（正数为奖励，负数为扣减）</p>
+        <h1 className="text-2xl font-bold text-slate-800">奖惩</h1>
+        <p className="text-sm text-slate-500 mt-0.5">为特定周手动加减时长（正数奖，负数惩）</p>
       </div>
 
       <Card>
         <div className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
-          <Gift className="w-4 h-4 text-amber-500" /> 新增奖励
+          <Gift className="w-4 h-4 text-amber-500" /> 新增奖惩
         </div>
-        <div className="grid grid-cols-12 gap-3">
+        <div className="grid grid-cols-12 gap-3 items-end">
           <div className="col-span-3">
             <Label>周开始日期</Label>
             <Input type="date" value={weekStart} onChange={(e) => setWeekStart(e.target.value)} />
             <div className="text-xs text-slate-500 mt-1">本周 {formatDateCN(weekStart + "T00:00:00+08:00")}</div>
           </div>
           <div className="col-span-2">
-            <Label>分钟数</Label>
+            <Label>分钟数（正奖负惩）</Label>
             <Input type="number" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))} step={5} />
           </div>
           <div className="col-span-5">
             <Label>原因</Label>
             <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="例如：考试进步 / 因违规扣 30 分钟" />
           </div>
-          <div className="col-span-2 flex items-end">
-            <Button onClick={submit} loading={busy} className="w-full">
+          <div className="col-span-2">
+            <Label className="invisible">.</Label>
+            <Button onClick={submit} loading={busy} className="w-full h-10">
               <Plus className="w-4 h-4" /> 添加
             </Button>
           </div>
@@ -85,9 +86,9 @@ export function BonusPage({ bonuses: initial, currentWeek }: { bonuses: WeeklyBo
       </Card>
 
       <Card>
-        <div className="text-sm font-medium text-slate-700 mb-3">历史奖励</div>
+        <div className="text-sm font-medium text-slate-700 mb-3">历史奖惩</div>
         {bonuses.length === 0 ? (
-          <div className="text-sm text-slate-500 py-8 text-center">还没有奖励记录</div>
+          <div className="text-sm text-slate-500 py-8 text-center">还没有奖惩记录</div>
         ) : (
           <ul className="divide-y divide-slate-100">
             {bonuses.map((b) => (

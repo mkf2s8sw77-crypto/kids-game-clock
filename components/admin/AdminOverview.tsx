@@ -65,7 +65,7 @@ export function AdminOverview({
         <StatCard
           label="本周配额"
           value={formatMinutes(stats.quotaMinutes)}
-          sub={stats.bonusMinutes > 0 ? `基础 3.5h + 奖励 ${stats.bonusMinutes}m` : "基础 3.5 小时"}
+          sub={stats.bonusMinutes > 0 ? `基础 3.5h + 奖惩 ${stats.bonusMinutes}m` : "基础 3.5 小时"}
           color="bg-blue-50 text-blue-700"
           icon={Clock}
         />
@@ -79,7 +79,7 @@ export function AdminOverview({
         <StatCard
           label="剩余"
           value={formatMinutes(stats.remainingMinutes)}
-          sub="含奖励分钟数"
+          sub="含奖惩分钟数"
           color={stats.remainingMinutes === 0 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}
           icon={Activity}
         />
@@ -126,11 +126,11 @@ export function AdminOverview({
 
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <div className="text-sm font-medium text-slate-700">本周奖励</div>
+            <div className="text-sm font-medium text-slate-700">本周奖惩</div>
             <Gift className="w-4 h-4 text-amber-500" />
           </div>
           {bonuses.length === 0 ? (
-            <div className="text-sm text-slate-500 py-6 text-center">本周还没有奖励</div>
+            <div className="text-sm text-slate-500 py-6 text-center">本周还没有奖惩</div>
           ) : (
             <ul className="divide-y divide-slate-100">
               {bonuses.map((b) => (

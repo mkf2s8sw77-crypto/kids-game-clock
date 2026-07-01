@@ -88,7 +88,7 @@ export function UserHome({ initialStats, initialRecent }: {
           />
           {stats.bonusMinutes > 0 && (
             <div className="mt-2 text-xs text-amber-600">
-              含本周奖励 +{stats.bonusMinutes} 分钟
+              含本周奖惩 +{stats.bonusMinutes} 分钟
             </div>
           )}
         </Card>
