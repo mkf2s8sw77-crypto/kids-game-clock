@@ -194,21 +194,10 @@ function AddSessionDialog({ onClose, onSaved }: { onClose: () => void; onSaved: 
         endedAt = now.toISOString();
         const startMs = now.getTime() - duration * 60_000;
         // 不能跨周：start 必须在当前周
-        const startDate = new Date(startMs).toISOString().slice(0, 10);
-        const weekStart = (() => {
-          const d = new Date();
-          const tz = "Asia/Shanghai";
-          const ymd = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
-          return ymd;
-        })();
-        // 用简单的"周一为周开始"判断：找这周一
-        const dayOfWeek = new Date(d).getDay(); // 0=Sun, 1=Mon
-        const thisMonday = new Date(d);
-        const shift = (dayOfWeek + 6) % 7;
-        thisMonday.setDate(thisMonday.getDate() - shift);
-        thisMonday.setHours(0, 0, 0, 0);
-        if (startMs < thisMonday.getTime()) {
-          setErr(`时长过长会跨周（本周从 ${thisMonday.toISOString().slice(0, 10)} 开始）。请缩短时长或切到精确时间模式`);
+        const startWeek = getWeekStartDate(new Date(startMs).toISOString());
+        const currentWeek = getWeekStartDate();
+        if (startWeek !== currentWeek) {
+          setErr(`时长过长会跨周（本周从 ${currentWeek} 开始）。请缩短时长或切到精确时间模式`);
           setBusy(false);
           return;
         }
