@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteSession, getSession, updateSession } from "@/lib/db/queries";
+import { requireAdminApi } from "@/lib/api-guard";
 
 export const runtime = "nodejs";
 
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const unauth = await requireAdminApi();
+  if (unauth) return unauth;
   const { id } = await ctx.params;
   const sid = Number(id);
   if (!Number.isFinite(sid)) return NextResponse.json({ error: "BAD_ID" }, { status: 400 });
@@ -21,6 +24,8 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 }
 
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const unauth = await requireAdminApi();
+  if (unauth) return unauth;
   const { id } = await ctx.params;
   const sid = Number(id);
   if (!Number.isFinite(sid)) return NextResponse.json({ error: "BAD_ID" }, { status: 400 });

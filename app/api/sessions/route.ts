@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listSessions, manualAddSession } from "@/lib/db/queries";
+import { requireAdminApi } from "@/lib/api-guard";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const unauth = await requireAdminApi();
+  if (unauth) return unauth;
   const body = (await req.json().catch(() => ({}))) as {
     startedAt: string;
     endedAt: string;

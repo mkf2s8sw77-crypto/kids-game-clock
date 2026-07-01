@@ -39,7 +39,8 @@ export function BonusPage({ bonuses: initial, currentWeek }: { bonuses: WeeklyBo
   }
 
   async function handleDelete(b: WeeklyBonus) {
-    if (!confirm(`确定删除 +${b.minutes} 分钟奖励？`)) return;
+    const sign = b.minutes >= 0 ? "+" : "";
+    if (!confirm(`确定删除 ${sign}${b.minutes} 分钟吗？`)) return;
     setBusy(true);
     try {
       await apiDelete(`/api/bonuses?id=${b.id}`);
@@ -52,7 +53,7 @@ export function BonusPage({ bonuses: initial, currentWeek }: { bonuses: WeeklyBo
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">奖励</h1>
+        <h1 className="text-2xl font-bold text-slate-800">奖励 / 惩罚</h1>
         <p className="text-sm text-slate-500 mt-0.5">为特定周手动增加时长（正数为奖励，负数为扣减）</p>
       </div>
 
@@ -72,7 +73,7 @@ export function BonusPage({ bonuses: initial, currentWeek }: { bonuses: WeeklyBo
           </div>
           <div className="col-span-5">
             <Label>原因</Label>
-            <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="例如：考试进步" />
+            <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="例如：考试进步 / 因违规扣 30 分钟" />
           </div>
           <div className="col-span-2 flex items-end">
             <Button onClick={submit} loading={busy} className="w-full">

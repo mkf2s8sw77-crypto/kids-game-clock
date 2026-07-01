@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createBonus, deleteBonus, listBonuses } from "@/lib/db/queries";
+import { requireAdminApi } from "@/lib/api-guard";
 
 export const runtime = "nodejs";
 
@@ -10,6 +11,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const unauth = await requireAdminApi();
+  if (unauth) return unauth;
   const body = (await req.json().catch(() => ({}))) as {
     weekStartDate: string;
     minutes: number;
@@ -27,6 +30,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const unauth = await requireAdminApi();
+  if (unauth) return unauth;
   const url = new URL(req.url);
   const id = Number(url.searchParams.get("id"));
   if (!Number.isFinite(id)) return NextResponse.json({ error: "BAD_ID" }, { status: 400 });
