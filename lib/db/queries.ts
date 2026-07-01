@@ -217,6 +217,7 @@ export interface WeekStats {
   remainingMinutes: number;
   activeSession: ReturnType<typeof getActiveSession>;
   perDay: { date: string; minutes: number }[];
+  daily: { date: string; minutes: number }[];
 }
 
 export function getWeekStats(weekStartDate?: string, days: number = 84): WeekStats {
